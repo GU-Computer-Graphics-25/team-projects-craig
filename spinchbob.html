@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sponchbob</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src=""></script>
 </head>
 <body>
     <script>
@@ -25,6 +25,13 @@
         const material = new THREE.MeshBasicMaterial({ color: 0xFFFF00 }); // Yellow color
         const spongeBob = new THREE.Mesh(geometry, material);
         scene.add(spongeBob);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 1, 0);
+        controls.update();
+        controls.addEventListener('change', () => {
+        renderer.render(scene, camera);
+        });
 
         // Animation loop
         function animate() {
