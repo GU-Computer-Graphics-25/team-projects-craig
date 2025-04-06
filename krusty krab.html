@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <title>Homework_4</title>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    canvas {
+      display: block;
+      margin: 10px auto;
+      width: 800px;
+      height: 500px;
+    }
+  </style>
+
+  <script src="./js/three.js"></script>
+  <script src="./js/OrbitControls.js"></script>
+  <script src="./js/SceneUtils.js"></script>
+  <script src="./js/dat.gui.js"></script>
+
+</head>
+
+<body>
+  <h1>The Krusty Krab</h1>
+  <script>
+    // Define camera parameters (position, orientation, and view settings)
+    var cameraParams = {
+      near: 0.1, // closest rendering distance
+      far: 1000, // farthest rendering distance
+      fov: 75, // camera field of view (degrees)
+      aspectRatio: window.innerWidth / window.innerHeight, // adjusts based on window size
+      atX: 0, atY: 0, atZ: 0, // camera target (center point to look at)
+      eyeX: 100, eyeY: 50, eyeZ: 100, // camera position
+      upX: 0, upY: 1, upZ: 0 // which direction is "up" (Y-axis by default)
+    };
+    var sceneParams = {
+      specular: 0x555555, // specular color (light reflection)
+      shininess: 30, // shininess level (surface smoothness)
+      spotlightColor: 0xffffff, // color of the spotlight
+    };
+
+    var scene = new THREE.Scene();
+
+    // Create and configure the camera using custom parameters
+    const camera = setupCamera(cameraParams);
+
+    // Create the WebGL renderer and add it to the page
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight); // size based on window
+    renderer.setAnimationLoop(render); // continuously render frames (main loop)
+    renderer.setClearColor(0xdddddd, 1); // set background color (light gray)
+    document.body.appendChild(renderer.domElement); // append canvas to DOM
+
+    // Add OrbitControls to allow user interaction (zoom, rotate, pan)
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    // Add spotlight to the scene
+    function addSpotlight() {
+      var spotlight = new THREE.SpotLight(sceneParams.spotlightColor);
+      spotlight.position.set(100, 100, 100); // set spotlight position
+      spotlight.castShadow = true; // enable shadows
+      spotlight.shadow.mapSize.width = 1024; // shadow resolution
+      spotlight.shadow.mapSize.height = 1024;
+      scene.add(spotlight);
+      return spotlight; // return the spotlight object
+    }
+    var spotlight = addSpotlight(); // create spotlight
+    
+
+    // Add ambient light to the scene (soft light that doesn't cast shadows)
+    function addAmbientLight() {
+      var ambientLight = new THREE.AmbientLight(0x404040); // soft white light
+      scene.add(ambientLight); // add ambient light to the scene
+      return ambientLight; // return the ambient light object
+    }
+    var ambientLight = addAmbientLight(); // create ambient light
+    
+    // Texture's for Kitchen dimensions
+    var textureLoader = new THREE.TextureLoader(); // create texture loader
+    
+    // Load textures for the kitchen floor
+    var kitchenFloorTexture = textureLoader.load('./krusty krab textures/flooring.jpg'); // load floor texture
+    kitchenFloorTexture.wrapS = THREE.RepeatWrapping; // repeat texture horizontally
+    kitchenFloorTexture.wrapT = THREE.RepeatWrapping; // repeat texture vertically
+    kitchenFloorTexture.repeat.set(2, 3); // set repeat count (4x4)
+
+    // Load textures for the kitchen walls
+    var kitchenWallTexture = textureLoader.load('./krusty krab textures/walls.jpg'); // load wall texture
+    
+
+    // Creating box geometry and material
+    var boxGeometry = new THREE.BoxGeometry(150, 100, 200); // box dimensions (width, height, depth)
+    var boxMaterialArray = [];
+    var facesColors = [0x52bdd6, 0x52bdd6, 0x55e28c, 0xc8ae76, 0x52bdd6, 0x52bdd6]; // colors for each face
+    for (var i = 0; i < 6; i++) {
+      if (i == 3 || i == 2) { // if it's the bottom face
+        boxMaterialArray.push(new THREE.MeshPhongMaterial({
+          map: kitchenFloorTexture, // set texture for the bottom face
+          side: THREE.BackSide // render the inside of the box
+        }));
+      } else {
+        boxMaterialArray.push(new THREE.MeshPhongMaterial({
+          color: facesColors[i], // set color for other faces
+          map: kitchenWallTexture, // set texture for the other faces
+          side: THREE.BackSide // render the inside of the box
+        }));
+      }
+    }
+
+    var boxMesh = new THREE.Mesh(boxGeometry, boxMaterialArray); // create mesh with geometry and material
+    boxMesh.position.set(0, 0, 0); // set position in the scene
+    scene.add(boxMesh); // add box mesh to the scene
+
+
+    // GUI for controlling lights
+    var gui = new dat.GUI(); // create GUI instance
+
+    
+    // set up the camera
+    function setupCamera(cameraParameters) {
+      var cp = cameraParameters;
+      var camera = new THREE.PerspectiveCamera(cp.fov, cp.aspectRatio, cp.near, cp.far);
+      camera.position.set(cp.eyeX, cp.eyeY, cp.eyeZ); // set camera position
+      camera.up.set(cp.upX, cp.upY, cp.upZ); // set 'up' direction
+      camera.lookAt(new THREE.Vector3(cp.atX, cp.atY, cp.atZ)); // look at the scene center
+      return camera;
+    }
+
+    // Render the scene
+    function render() {
+      renderer.render(scene, camera);
+    }
+  </script>
+
+</body>
+
+</html>
