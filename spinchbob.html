@@ -3,39 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sponchbob</title>
-    <script src=""></script>
+    <title>Spongebob Detailed</title>
+    <style>
+        body { margin: 0; overflow: hidden; } /* Remove default margin, hide scrollbars */
+        canvas { display: block; } /* Prevent canvas adding extra space */
+    </style>
 </head>
 <body>
-    <script>
-        // Scene setup
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // === Scene Setup ===
         const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB); // Light blue background
 
-        // Camera setup
+        // === Camera Setup ===
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;
+        camera.position.set(0, 1.5, 6); // Adjusted camera position
 
-        // Renderer setup
-        const renderer = new THREE.WebGLRenderer();
+        // === Renderer Setup ===
+        const renderer = new THREE.WebGLRenderer({ antialias: true }); // Enable antialiasing
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Create a yellow rectangular prism
-        const geometry = new THREE.BoxGeometry(1, 2, 0.5); // Width, height, depth
-        const material = new THREE.MeshBasicMaterial({ color: 0xFFFF00 }); // Yellow color
-        const spongeBob = new THREE.Mesh(geometry, material);
-        scene.add(spongeBob);
+        // === Lighting ===
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Soft white light
+        scene.add(ambientLight);
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 1, 0);
-        controls.update();
-        controls.addEventListener('change', () => {
-        renderer.render(scene, camera);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0); // Stronger directional light
+        directionalLight.position.set(5, 10, 7.5);
+        scene.add(directionalLight);
+
+        // === SpongeBob Group ===
+        // We'll add all parts of Spongebob to this group
+        const spongebobGroup = new THREE.Group();
+        scene.add(spongebobGroup);
+
+        // --- SpongeBob Body ---
+        const bodyWidth = 2;
+        const bodyHeight = 2.2;
+        const bodyDepth = 1;
+        const bodyGeometry = new THREE.BoxGeometry(bodyWidth, bodyHeight, bodyDepth);
+        const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 }); // Yellow
+        const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        bodyMesh.position.y = bodyHeight / 2; // Position body so its base is at y=0 within the group
+        spongebobGroup.add(bodyMesh);
+
+        // --- Pants ---
+        const pantsHeight = 0.6;
+        const pantsGeometry = new THREE.BoxGeometry(bodyWidth * 1.05, pantsHeight, bodyDepth * 1.05); // Slightly wider
+        const pantsMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Brown
+        const pantsMesh = new THREE.Mesh(pantsGeometry, pantsMaterial);
+        // Position pants below the body (relative to the group's origin which is the bottom center of the body)
+        pantsMesh.position.y = -pantsHeight / 2;
+        spongebobGroup.add(pantsMesh);
+
+        // --- Shirt ---
+        const shirtHeight = 0.3;
+        const shirtGeometry = new THREE.BoxGeometry(bodyWidth * 1.02, shirtHeight, bodyDepth * 1.02); // Slightly wider than body
+        const shirtMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF }); // White
+        const shirtMesh = new THREE.Mesh(shirtGeometry, shirtMaterial);
+        // Position shirt just above the pants
+        shirtMesh.position.y = pantsMesh.position.y + pantsHeight / 2 + shirtHeight / 2;
+        spongebobGroup.add(shirtMesh);
+
+        // --- Legs ---
+        const legRadius = 0.15;
+        const legHeight = 0.8;
+        const legGeometry = new THREE.CylinderGeometry(legRadius, legRadius, legHeight, 8); // Use Cylinder for legs
+        const legMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 }); // Yellow legs
+
+        const leftLegMesh = new THREE.Mesh(legGeometry, legMaterial);
+        leftLegMesh.position.set(-bodyWidth / 4, pantsMesh.position.y - pantsHeight / 2 - legHeight / 2, 0);
+        spongebobGroup.add(leftLegMesh);
+
+        const rightLegMesh = new THREE.Mesh(legGeometry, legMaterial);
+        rightLegMesh.position.set(bodyWidth / 4, pantsMesh.position.y - pantsHeight / 2 - legHeight / 2, 0);
+        spongebobGroup.add(rightLegMesh);
+
+         // --- Arms ---
+        const armRadius = 0.12;
+        const armLength = 1.0;
+        const armGeometry = new THREE.CylinderGeometry(armRadius, armRadius, armLength, 8);
+        const armMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 }); // Yellow arms
+
+        const leftArmMesh = new THREE.Mesh(armGeometry, armMaterial);
+        // Position arm relative to body center, then rotate
+        leftArmMesh.position.set(-bodyWidth / 2 - armLength / 2 + 0.2, bodyMesh.position.y - 0.3, 0);
+        leftArmMesh.rotation.z = Math.PI / 2.5; // Rotate arm
+        spongebobGroup.add(leftArmMesh);
+
+        const rightArmMesh = new THREE.Mesh(armGeometry, armMaterial);
+        rightArmMesh.position.set(bodyWidth / 2 + armLength / 2 - 0.2, bodyMesh.position.y - 0.3, 0);
+        rightArmMesh.rotation.z = -Math.PI / 2.5; // Rotate arm
+        spongebobGroup.add(rightArmMesh);
+
+
+        // --- Spots ---
+        const spotRadius = 0.15;
+        const spotGeometry = new THREE.CircleGeometry(spotRadius, 8);
+        const spotMaterial = new THREE.MeshStandardMaterial({
+             color: 0xDAA520, // Darker yellow / Gold
+             side: THREE.DoubleSide // Make sure it's visible from both sides if needed
+            });
+
+        const spotsData = [
+            { x: -0.5, y: 1.8, z: bodyDepth / 2 + 0.01 },
+            { x: 0.6, y: 1.5, z: bodyDepth / 2 + 0.01 },
+            { x: 0.0, y: 1.0, z: bodyDepth / 2 + 0.01 },
+            { x: -0.7, y: 0.5, z: bodyDepth / 2 + 0.01 },
+            { x: 0.4, y: 0.2, z: bodyDepth / 2 + 0.01 },
+             // Add spots on the back too? (adjust z)
+            { x: -0.4, y: 1.6, z: -bodyDepth / 2 - 0.01, ry: Math.PI }, // Rotate 180 deg around Y
+            { x: 0.5, y: 0.8, z: -bodyDepth / 2 - 0.01, ry: Math.PI },
+        ];
+
+        spotsData.forEach(data => {
+            const spotMesh = new THREE.Mesh(spotGeometry, spotMaterial);
+            spotMesh.position.set(data.x, data.y, data.z);
+            if (data.ry) { // Apply rotation if specified (for back spots)
+                spotMesh.rotation.y = data.ry;
+            }
+             // Orient spots to face outwards from the body center - slightly more advanced
+             // For simple box, just placing them on front/back surface is easiest
+            spongebobGroup.add(spotMesh);
         });
 
-        // Animation loop
+        // Adjust the main group position if needed (e.g., lift Spongebob up so legs are near ground y=0)
+        spongebobGroup.position.y = legHeight + pantsHeight; // Lift the whole group
+
+
+        // === Controls ===
+        const controls = new OrbitControls(camera, renderer.domElement);
+        // Target the center of Spongebob's body for better rotation focus
+        controls.target.set(spongebobGroup.position.x, bodyMesh.position.y + spongebobGroup.position.y, spongebobGroup.position.z);
+        controls.update();
+        // No need for event listener if using requestAnimationFrame loop
+
+        // === Animation Loop ===
         function animate() {
             requestAnimationFrame(animate);
+
+            // Optional: Add simple animation
+            // spongebobGroup.rotation.y += 0.005;
+
+            controls.update(); // Only required if controls.enableDamping or controls.autoRotate are set
             renderer.render(scene, camera);
         }
         animate();
