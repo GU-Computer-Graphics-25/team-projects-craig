@@ -116,6 +116,145 @@
     boxMesh.position.set(0, 0, 0); // set position in the scene
     scene.add(boxMesh); // add box mesh to the scene
 
+    // Create Door
+    function createDoor(x, y, z, rotateY) {
+      // Create the arched door shape
+      var curve = new THREE.EllipseCurve(0, 0, 20, 15, Math.PI, 0, true);
+      var points = curve.getPoints(50);
+      var shape = new THREE.Shape();
+
+      shape.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        shape.lineTo(points[i].x, points[i].y);
+      }
+
+      shape.lineTo(20, -50);  // right base corner
+      shape.lineTo(-20, -50); // left base corner
+      shape.lineTo(points[0].x, points[0].y); // close the shape
+
+      // Extrude the door shape
+      var extrudeSettings = {
+        depth: 1,
+        bevelEnabled: false,
+      };
+
+      var geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      var material = new THREE.MeshPhongMaterial({ color: 0x98aaff }); // soft purple-blue
+      var door = new THREE.Mesh(geometry, material);
+
+      // Create the porthole window
+      var portholeGeo = new THREE.CircleGeometry(6, 32);
+      var portholeMat = new THREE.MeshPhongMaterial({ color: 0xccccff }); // light blue-gray
+      var porthole = new THREE.Mesh(portholeGeo, portholeMat);
+      porthole.position.set(0, 0, 1.01); // slightly in front of the door
+      door.add(porthole);
+
+      // Create porthole ring
+      var ringGeo = new THREE.RingGeometry(6, 7, 32);
+      var ringMat = new THREE.MeshPhongMaterial({ color: 0x6a7bd1 }); // darker trim
+      var ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.set(0, 0, 1.02);
+      door.add(ring);
+
+      door.rotation.y = rotateY; // rotate the door to face the front
+      door.position.set(x, y, z); // set door position
+      scene.add(door);
+    }
+    createDoor(-75, 0, 60, Math.PI/2); // create door at specified position and rotation
+    createDoor(-40, 0, -100, 0); // create door at specified position and rotation
+
+    function createGrill(x, y, z) {
+
+      // Create a group to hold all grill parts
+      var grillGroup = new THREE.Group();
+
+      // Grill Base (main body)
+      var baseGeometry = new THREE.BoxGeometry(40, 30, 25); // width, height, depth
+      var baseMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
+      var base = new THREE.Mesh(baseGeometry, baseMaterial);
+      base.position.set(x, y, z);
+
+      // Grill Top (black cook surface)
+      var topGeometry = new THREE.BoxGeometry(41, 2, 26); // slightly larger for overhang
+      var topMaterial = new THREE.MeshPhongMaterial({ color: 0x111111 });
+      var top = new THREE.Mesh(topGeometry, topMaterial);
+      top.position.set(x, y + 15, z); // on top of the base
+
+      // Back Panel / Vent Hood
+      var backGeometry = new THREE.BoxGeometry(40, 5, 2);
+      var backMaterial = new THREE.MeshPhongMaterial({ color: 0x444444 });
+      var back = new THREE.Mesh(backGeometry, backMaterial);
+      back.position.set(x, y + 18, z - 12); // near the back of the grill
+
+      // Knobs
+      var knobMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
+      for (var i = -1; i <= 1; i++) {
+        var knob = new THREE.Mesh(
+          new THREE.CylinderGeometry(2, 2, 1, 16),
+          knobMaterial
+        );
+        knob.rotation.x = Math.PI / 2; // face forward
+        knob.position.set(x + i * 13, y + 9, z + 13); // evenly spaced on front face
+        grillGroup.add(knob); // add knob to grill group
+      }
+
+      // Group everything together
+      grillGroup.add(base);
+      grillGroup.add(top);
+      grillGroup.add(back);
+
+
+      grillGroup.rotateY(Math.PI / 2); // rotate to face the front
+      grillGroup.position.set(-12, -35, -20); // set grill position
+      scene.add(grillGroup);
+    }
+    createGrill(0, 0, -50); // create grill at specified position
+    
+    // Creating the lights
+    function createOverheadLamp(x, y, z) {
+      // Stem / cord
+      var stemGeometry = new THREE.CylinderGeometry(1, 1, 10, 16);
+      var stemMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 }); // dark gray/black
+      var stem = new THREE.Mesh(stemGeometry, stemMaterial);
+      stem.position.set(x, y, z);
+
+      // Dome (lamp head)
+      var domeGeometry = new THREE.SphereGeometry(10, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+      var domeMaterial = new THREE.MeshPhongMaterial({
+        color: 0x445566,
+        shininess: 30 
+      }); 
+      var dome = new THREE.Mesh(domeGeometry, domeMaterial);
+      dome.position.set(x, y - 15, z); // hang below the stem
+
+      // Bulb (light source)
+      var bulbGeometry = new THREE.SphereGeometry(3, 16, 16);
+      var bulbMaterial = new THREE.MeshPhongMaterial({ color: 0xffffaa, emissive: 0xffffaa, emissiveIntensity: 0.8 });
+      var bulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
+      bulb.position.set(x, y - 10, z); // below the dome
+
+      // Optional: add a spotlight for actual lighting effect
+      var luxolight = new THREE.SpotLight(0xffffdd, 1, 100, Math.PI / 2, 1.3, 1.5);
+      luxolight.position.set(x, y - 12, z); // place near the bulb
+      luxolight.target.position.set(x, y - 30, z); // light pointing downward
+      luxolight.castShadow = true;
+      luxolight.penumbra = 0.9;
+      luxolight.decay = 0.5;
+
+      scene.add(luxolight);
+      scene.add(luxolight.target);
+
+      // Group all parts together for easier control
+      var lampGroup = new THREE.Group();
+      lampGroup.add(stem);
+      lampGroup.add(dome);
+      lampGroup.add(bulb);
+      scene.add(lampGroup);
+    }
+    createOverheadLamp(0, 45, -60); // Center
+    createOverheadLamp(0, 45, 60); // Left
+    createOverheadLamp(0, 45, 0); // Right
+
 
     // GUI for controlling lights
     var gui = new dat.GUI(); // create GUI instance
