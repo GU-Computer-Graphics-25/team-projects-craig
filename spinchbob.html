@@ -3,23 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spongebob Detailed++</title>
+    <title>Spongebob Detailed++ (Classic Scripts)</title>
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
     </style>
 </head>
 <body>
-    <script type="importmap">
-        "imports": {
-            "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.163.0/examples/jsm/"
-        }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    <script src="./js/three.js"></script>
+    <script src="./js/OrbitControls.js"></script>
+    <script src="./js/SceneUtils.js"></script> <script>
+        // No more 'import' statements needed here
 
         // === Scene Setup ===
         const scene = new THREE.Scene();
@@ -27,7 +21,7 @@
 
         // === Camera Setup ===
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 2.5, 7); // Adjusted for better view
+        camera.position.set(0, 2.5, 7);
 
         // === Renderer Setup ===
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -60,18 +54,18 @@
         const shoeHeight = 0.2;
 
         // --- Materials ---
-        const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 }); // Yellow
-        const pantsMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Brown
-        const shirtMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF }); // White
-        const legArmMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 }); // Yellow
-        const spotMaterial = new THREE.MeshStandardMaterial({ color: 0xDAA520, side: THREE.DoubleSide }); // Dark Yellow
-        const beltMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Black
-        const eyeballMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF }); // White
-        const irisMaterial = new THREE.MeshStandardMaterial({ color: 0x4682B4 }); // Steel Blue
-        const pupilMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Black
-        const shoeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Black
-        const spatulaHandleMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 }); // Dark Grey
-        const spatulaBladeMaterial = new THREE.MeshStandardMaterial({ color: 0xCCCCCC }); // Light Grey/Silver
+        const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 });
+        const pantsMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const shirtMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+        const legArmMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 });
+        const spotMaterial = new THREE.MeshStandardMaterial({ color: 0xDAA520, side: THREE.DoubleSide });
+        const beltMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+        const eyeballMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+        const irisMaterial = new THREE.MeshStandardMaterial({ color: 0x4682B4 });
+        const pupilMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+        const shoeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+        const spatulaHandleMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        const spatulaBladeMaterial = new THREE.MeshStandardMaterial({ color: 0xCCCCCC });
 
         // --- SpongeBob Body ---
         const bodyGeometry = new THREE.BoxGeometry(bodyWidth, bodyHeight, bodyDepth);
@@ -82,7 +76,7 @@
         // --- Pants ---
         const pantsGeometry = new THREE.BoxGeometry(bodyWidth * 1.05, pantsHeight, bodyDepth * 1.05);
         const pantsMesh = new THREE.Mesh(pantsGeometry, pantsMaterial);
-        const pantsTopY = -pantsHeight / 2; // Remember Y position of the top of the pants
+        const pantsTopY = -pantsHeight / 2;
         pantsMesh.position.y = pantsTopY;
         spongebobGroup.add(pantsMesh);
 
@@ -94,16 +88,15 @@
 
         // --- Belt ---
         const beltHeight = 0.08;
-        const beltGeometry = new THREE.BoxGeometry(bodyWidth * 1.07, beltHeight, bodyDepth * 1.07); // Slightly bigger than pants
+        const beltGeometry = new THREE.BoxGeometry(bodyWidth * 1.07, beltHeight, bodyDepth * 1.07);
         const beltMesh = new THREE.Mesh(beltGeometry, beltMaterial);
-        // Position it exactly at the top of the pants (which is the bottom of the shirt)
         beltMesh.position.y = pantsTopY + pantsHeight / 2 + beltHeight / 2;
-        beltMesh.position.z = 0.01; // Slightly forward to avoid z-fighting with shirt/pants
+        beltMesh.position.z = 0.01;
         spongebobGroup.add(beltMesh);
 
         // --- Legs ---
         const legGeometry = new THREE.CylinderGeometry(legRadius, legRadius, legHeight, 8);
-        const legBottomY = pantsMesh.position.y - pantsHeight / 2 - legHeight; // Y where leg ends
+        const legBottomY = pantsMesh.position.y - pantsHeight / 2 - legHeight;
 
         const leftLegMesh = new THREE.Mesh(legGeometry, legArmMaterial);
         leftLegMesh.position.set(-bodyWidth / 4, pantsMesh.position.y - pantsHeight / 2 - legHeight / 2, 0);
@@ -114,14 +107,14 @@
         spongebobGroup.add(rightLegMesh);
 
         // --- Shoes ---
-        const shoeGeometry = new THREE.BoxGeometry(shoeWidth, shoeHeight, shoeLength); // Note Z is length here
+        const shoeGeometry = new THREE.BoxGeometry(shoeWidth, shoeHeight, shoeLength);
 
         const leftShoeMesh = new THREE.Mesh(shoeGeometry, shoeMaterial);
-        leftShoeMesh.position.set(leftLegMesh.position.x, legBottomY - shoeHeight / 2, shoeLength / 4); // Position slightly forward
+        leftShoeMesh.position.set(leftLegMesh.position.x, legBottomY - shoeHeight / 2, shoeLength / 4);
         spongebobGroup.add(leftShoeMesh);
 
         const rightShoeMesh = new THREE.Mesh(shoeGeometry, shoeMaterial);
-        rightShoeMesh.position.set(rightLegMesh.position.x, legBottomY - shoeHeight / 2, shoeLength / 4); // Position slightly forward
+        rightShoeMesh.position.set(rightLegMesh.position.x, legBottomY - shoeHeight / 2, shoeLength / 4);
         spongebobGroup.add(rightShoeMesh);
 
         // --- Arms ---
@@ -133,18 +126,17 @@
         spongebobGroup.add(leftArmMesh);
 
         const rightArmMesh = new THREE.Mesh(armGeometry, legArmMaterial);
-        // Adjust right arm position slightly to hold spatula better
         rightArmMesh.position.set(bodyWidth / 2 + armLength / 2 - 0.4, bodyMesh.position.y - 0.6, 0.1);
-        rightArmMesh.rotation.z = -Math.PI / 2.2; // More bent to hold spatula
-        rightArmMesh.rotation.x = -Math.PI / 16; // Slight forward rotation
+        rightArmMesh.rotation.z = -Math.PI / 2.2;
+        rightArmMesh.rotation.x = -Math.PI / 16;
         spongebobGroup.add(rightArmMesh);
 
         // --- Eyes ---
         const eyeRadius = 0.3;
         const irisRadius = 0.15;
         const pupilRadius = 0.07;
-        const eyeSeparation = 0.45; // Distance from center to eye center
-        const eyeHeight = bodyMesh.position.y + 0.5; // Y position on the body
+        const eyeSeparation = 0.45;
+        const eyeHeight = bodyMesh.position.y + 0.5;
         const eyeForwardOffset = bodyDepth / 2;
 
         function createEye() {
@@ -155,12 +147,12 @@
 
             const irisGeo = new THREE.SphereGeometry(irisRadius, 12, 12);
             const irisMesh = new THREE.Mesh(irisGeo, irisMaterial);
-            irisMesh.position.z = eyeRadius - 0.01; // Slightly in front of eyeball surface
+            irisMesh.position.z = eyeRadius - 0.01;
             eyeGroup.add(irisMesh);
 
             const pupilGeo = new THREE.SphereGeometry(pupilRadius, 8, 8);
             const pupilMesh = new THREE.Mesh(pupilGeo, pupilMaterial);
-            pupilMesh.position.z = eyeRadius + irisRadius * 0.3; // Slightly in front of iris surface
+            pupilMesh.position.z = eyeRadius + irisRadius * 0.3;
             eyeGroup.add(pupilMesh);
 
             return eyeGroup;
@@ -173,7 +165,6 @@
         const rightEye = createEye();
         rightEye.position.set(eyeSeparation, eyeHeight, eyeForwardOffset);
         spongebobGroup.add(rightEye);
-
 
         // --- Spots ---
         const spotRadius = 0.15;
@@ -207,48 +198,36 @@
 
         const handleGeo = new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 8);
         const handleMesh = new THREE.Mesh(handleGeo, spatulaHandleMaterial);
-        handleMesh.position.y = -handleLength / 2; // Center handle origin at its top
+        handleMesh.position.y = -handleLength / 2;
         spatulaGroup.add(handleMesh);
 
         const bladeGeo = new THREE.BoxGeometry(bladeWidth, bladeHeight, bladeLength);
         const bladeMesh = new THREE.Mesh(bladeGeo, spatulaBladeMaterial);
-        bladeMesh.position.y = 0; // Position blade relative to handle top
-        bladeMesh.position.z = bladeLength / 2; // Extend blade forward from handle center
+        bladeMesh.position.y = 0;
+        bladeMesh.position.z = bladeLength / 2;
         spatulaGroup.add(bladeMesh);
 
-        // Position spatula near the right hand
-        // Find approx hand position: arm attachment + vector along rotated arm
         const armRotationZ = rightArmMesh.rotation.z;
         const handX = rightArmMesh.position.x + Math.cos(armRotationZ) * (armLength / 1.9);
         const handY = rightArmMesh.position.y + Math.sin(armRotationZ) * (armLength / 1.9);
         const handZ = rightArmMesh.position.z;
 
         spatulaGroup.position.set(handX, handY, handZ);
-        spatulaGroup.rotation.z = Math.PI / 2 + armRotationZ; // Align with arm
-        spatulaGroup.rotation.y = -Math.PI / 16; // Slight angle
+        spatulaGroup.rotation.z = Math.PI / 2 + armRotationZ;
+        spatulaGroup.rotation.y = -Math.PI / 16;
 
         spongebobGroup.add(spatulaGroup);
 
-
         // === Final Group Positioning ===
-        // Lift the whole group so the bottom of the shoes are near y=0
-        const lowestPoint = legBottomY - shoeHeight; // Y-coordinate of the bottom of the shoes
-        spongebobGroup.position.y = -lowestPoint; // Adjust group position
+        const lowestPoint = legBottomY - shoeHeight;
+        spongebobGroup.position.y = -lowestPoint;
 
         // === Controls ===
-        const controls = new OrbitControls(camera, renderer.domElement);
-        // Target the center of Spongebob's body for better rotation focus
+        // Reference OrbitControls via the global THREE object
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
         const targetY = bodyMesh.position.y + spongebobGroup.position.y;
         controls.target.set(spongebobGroup.position.x, targetY, spongebobGroup.position.z);
         controls.update();
-
-        // === Handle Window Resize ===
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-        window.addEventListener('resize', onWindowResize);
 
         // === Animation Loop ===
         function animate() {
@@ -258,5 +237,6 @@
         }
         animate();
     </script>
+
 </body>
 </html>
