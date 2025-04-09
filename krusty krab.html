@@ -4,7 +4,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-  <title>Homework_4</title>
+  <title>Krusty Krab</title>
   <style>
     body {
       margin: 0;
@@ -265,14 +265,63 @@
 
 
     // GUI
-    var gui = new dat.GUI(); // create GUI instance
+    var gui = new dat.GUI(); 
 
-    // Light intensity control
-    gui.add(sceneParams, 'lampLightIntensity', 0, 3).name('Lamp Intensity').onChange(function (value) {
-      lampLights.forEach(function (light) {
-        light.intensity = value; // update light intensity based on GUI input
-      });
-    });
+    // --- Individual Lamp Intensity Controls ---
+    if (lampLights && lampLights.length >= 3) {
+        var lampFolder = gui.addFolder('Lamp Intensities');
+
+        lampFolder.add(lampLights[0], 'intensity', 0, 3).name('Lamp 1 (Left)');
+
+        lampFolder.add(lampLights[1], 'intensity', 0, 3).name('Lamp 2 (Center)');
+
+        lampFolder.add(lampLights[2], 'intensity', 0, 3).name('Lamp 3 (Right)');
+
+    } else {
+        console.error("Error: lampLights array not found or doesn't contain 3 lights.");
+    }
+
+    function setCameraView(eyeX, eyeY, eyeZ, targetX, targetY, targetZ) {
+      // Set the camera's position
+      camera.position.set(eyeX, eyeY, eyeZ);
+
+      // Set the point the camera should look at
+      var lookAtPoint = new THREE.Vector3(targetX, targetY, targetZ);
+      camera.lookAt(lookAtPoint);
+
+
+      controls.target.set(targetX, targetY, targetZ);
+      controls.update(); // Apply the changes to the controls
+  }
+
+  var cameraViews = {
+      view1: function() {
+          // Front view, slightly elevated
+          setCameraView(-12, 0, 60, -12, -20, -20);
+      },
+      view2: function() {
+          // Side view from the right (relative to the grill's front)
+          setCameraView(50, -10, -20, -12, -20, -20);
+      },
+      view3: function() {
+          // Top-down view
+          setCameraView(-12, 50, -20, -12, -35, -20); // Looking straight down
+      },
+      view4: function() {
+          // Closer view from the front-left
+          setCameraView(-50, -15, 0, -12, -20, -20);
+      }
+  };
+
+      var cameraFolder = gui.addFolder('Camera Views');
+
+      cameraFolder.add(cameraViews, 'view1').name('View 1 (Front)');
+      cameraFolder.add(cameraViews, 'view2').name('View 2 (Right Side)');
+      cameraFolder.add(cameraViews, 'view3').name('View 3 (Top Down)');
+      cameraFolder.add(cameraViews, 'view4').name('View 4 (Front Left)');
+  
+      cameraFolder.open(); // Optional: Keep the folder open
+
     
     // set up the camera
     function setupCamera(cameraParameters) {
