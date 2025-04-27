@@ -27,7 +27,8 @@
 
 <body>
   <h1>The Krusty Krab</h1>
-  <script>
+  <script type="module">
+    import { createSpongebob } from './js/spongebob.js';
     // Define camera parameters (position, orientation, and view settings)
     var cameraParams = {
       near: 0.1, // closest rendering distance
@@ -349,7 +350,6 @@
         barrelGroup.add(band);
       });
 
-      // Optional: Add a top lid
       var lidGeometry = new THREE.CircleGeometry(barrelRadius - 0.5, 32);
       var lidMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
       var lid = new THREE.Mesh(lidGeometry, lidMaterial);
@@ -675,6 +675,11 @@
       scene.add(fryerGroup);
     }
     createDeepFryer(-60, -45, -60); 
+
+    // Create Spongebob
+    const spongebob = createSpongebob();
+    scene.add(spongebob); // add Spongebob to the scene
+    spongebob.position.set(0, -50 + 1.6, 0);
 
     // GUI
     var gui = new dat.GUI(); 
