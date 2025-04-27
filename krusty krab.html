@@ -263,6 +263,327 @@
     lampLights.push(createOverheadLamp(0, 45, 0, sceneParams.lampLightIntensity));    // Center
     lampLights.push(createOverheadLamp(0, 45, 60, sceneParams.lampLightIntensity));   // Right
 
+    function createKitchenWindow(x, y, z) {
+      var window = new THREE.Group();
+
+      const windowOpeningGeom = new THREE.BoxGeometry(40, 25, 0.5);
+      const windowOpeningMat = new THREE.MeshBasicMaterial({ color: 0x87CEFA }); // light blue glassy
+      const windowOpening = new THREE.Mesh(windowOpeningGeom, windowOpeningMat);
+      windowOpening.rotation.y = Math.PI / 2; // rotate to face the front
+      windowOpening.position.set(x, y, z); // Adjust to wall depth
+      window.add(windowOpening);
+
+      scene.add(window);
+    }
+    createKitchenWindow(-75, 10, -20); // create window at specified position
+
+    function createPlatform(x, y, z) {
+      var platformGroup = new THREE.Group();
+
+      var topGeometry = new THREE.BoxGeometry(30, 10, 15);
+      var topMaterial = new THREE.MeshStandardMaterial({ color: 0xAAAAAA });
+      var tabletop = new THREE.Mesh(topGeometry, topMaterial);
+      tabletop.position.set(0, 23, 0);
+      platformGroup.add(tabletop);
+
+      var legGeometry = new THREE.BoxGeometry(2, 23, 2);
+      var legMaterial = new THREE.MeshStandardMaterial({ color: 0x666666 });
+
+      var positions = [
+        [-12, 9, -6],
+        [12, 9, -6],
+        [-12, 9, 6],
+        [12, 9, 6]
+      ];
+
+      positions.forEach(function(pos) {
+        var leg = new THREE.Mesh(legGeometry, legMaterial);
+        leg.position.set(pos[0], pos[1], pos[2]);
+        platformGroup.add(leg);
+      });
+
+      platformGroup.position.set(x, y, z); // Set the position of the platform
+      platformGroup.rotation.set(0, Math.PI / 2, 0); // Rotate the platform to face the front
+      scene.add(platformGroup);
+    }
+    createPlatform(-60, -50, 20); // Create the platform
+
+    function createBarrel(x, y, z) {
+      var barrelGroup = new THREE.Group();
+
+      var barrelRadius = 9;
+      var barrelHeight = 20;
+      var plankCount = 24; // How many planks around
+
+      // Create planks individually
+      for (var i = 0; i < plankCount; i++) {
+        var angle = (i / plankCount) * Math.PI * 2;
+
+        var plankGeometry = new THREE.BoxGeometry(2.25, barrelHeight, 1); // skinny plank
+        var plankMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+
+        var plank = new THREE.Mesh(plankGeometry, plankMaterial);
+
+        // Position planks around a circle
+        plank.position.x = Math.cos(angle) * barrelRadius;
+        plank.position.z = Math.sin(angle) * barrelRadius;
+        plank.position.y = 0; // Centered vertically
+
+        // Rotate each plank so it faces outward
+        plank.lookAt(0, 0, 0);
+        barrelGroup.add(plank);
+      }
+
+      // Add metal bands
+      var bandMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
+      var bandPositions = [-8, 0, 8];
+
+      bandPositions.forEach(function (posY) {
+        var bandGeometry = new THREE.TorusGeometry(barrelRadius + 0.5, 0.6, 16, 32);
+        var band = new THREE.Mesh(bandGeometry, bandMaterial);
+        band.rotation.x = Math.PI / 2;
+        band.position.y = posY;
+        barrelGroup.add(band);
+      });
+
+      // Optional: Add a top lid
+      var lidGeometry = new THREE.CircleGeometry(barrelRadius - 0.5, 32);
+      var lidMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+      var lid = new THREE.Mesh(lidGeometry, lidMaterial);
+      lid.rotation.x = -Math.PI / 2;
+      lid.position.y = barrelHeight / 2;
+      barrelGroup.add(lid);
+
+      // Position the whole barrel
+      barrelGroup.position.set(x, y, z);
+
+      scene.add(barrelGroup);
+    }
+    createBarrel(60, -40, 30);
+    createBarrel(60, -40, 60);
+    createBarrel(45, -40, 45);
+
+    function createUltraDetailedCondimentTable(x, y, z) {
+      var tableGroup = new THREE.Group();
+
+      // Tabletop
+      var tableTopGeometry = new THREE.BoxGeometry(40, 4, 20);
+      var tableTopMaterial = new THREE.MeshStandardMaterial({ color: 0x556B2F, roughness: 0.7 });
+      var tableTop = new THREE.Mesh(tableTopGeometry, tableTopMaterial);
+      tableTop.position.set(0, 22, 0);
+      tableGroup.add(tableTop);
+
+      // Legs (4 legs)
+      var legGeometry = new THREE.BoxGeometry(2, 22, 2);
+      var legMaterial = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.9 });
+
+      var legPositions = [
+        [-18, 11, -8],  // Front Left
+        [18, 11, -8],   // Front Right
+        [-18, 11, 8],   // Back Left
+        [18, 11, 8]     // Back Right
+      ];
+
+      legPositions.forEach(function (pos) {
+        var leg = new THREE.Mesh(legGeometry, legMaterial);
+        leg.position.set(pos[0], pos[1], pos[2]);
+        tableGroup.add(leg);
+      });
+
+      // Cabinet body
+      var cabinetGeometry = new THREE.BoxGeometry(36, 16, 16);
+      var cabinetMaterial = new THREE.MeshStandardMaterial({ color: 0x778899 });
+      var cabinet = new THREE.Mesh(cabinetGeometry, cabinetMaterial);
+      cabinet.position.set(0, 12, 0);
+      tableGroup.add(cabinet);
+
+      // Cabinet doors (split middle)
+      var doorGeometry = new THREE.BoxGeometry(17, 16, 0.5);
+      var doorMaterial = new THREE.MeshStandardMaterial({ color: 0x445566 });
+
+      var leftDoor = new THREE.Mesh(doorGeometry, doorMaterial);
+      leftDoor.position.set(-9, 12, 8.3);
+      tableGroup.add(leftDoor);
+
+      var rightDoor = new THREE.Mesh(doorGeometry, doorMaterial);
+      rightDoor.position.set(9, 12, 8.3);
+      tableGroup.add(rightDoor);
+
+      // Door handles (tiny spheres)
+      var handleGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+      var handleMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
+
+      var leftHandle = new THREE.Mesh(handleGeometry, handleMaterial);
+      leftHandle.position.set(-4, 12, 9);
+      tableGroup.add(leftHandle);
+
+      var rightHandle = new THREE.Mesh(handleGeometry, handleMaterial);
+      rightHandle.position.set(4, 12, 9);
+      tableGroup.add(rightHandle);
+
+      // Condiment bottles (ketchup, mustard, mayo)
+      function createBottle(colorHex, xOffset) {
+        var bottleGroup = new THREE.Group();
+
+        // Body
+        var bodyGeometry = new THREE.CylinderGeometry(2, 2, 8, 16);
+        var bodyMaterial = new THREE.MeshStandardMaterial({ color: colorHex });
+        var body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.position.y = 1;
+        bottleGroup.add(body);
+
+        // Cap
+        var capGeometry = new THREE.CylinderGeometry(1.2, 1.2, 1.5, 16);
+        var capMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        var cap = new THREE.Mesh(capGeometry, capMaterial);
+        cap.position.y = 5;
+        bottleGroup.add(cap);
+
+        bottleGroup.position.set(xOffset, 26, 0);
+        return bottleGroup;
+      }
+
+      tableGroup.add(createBottle(0xFF0000, -10)); // Ketchup
+      tableGroup.add(createBottle(0xFFFF00, 0));   // Mustard
+      tableGroup.add(createBottle(0xFFFFFF, 10));  // Mayo
+
+      // Position table in scene
+      tableGroup.position.set(x, y, z);
+      scene.add(tableGroup);
+    }
+    createUltraDetailedCondimentTable(20, -50, -90); // Create condiment table
+
+    function createDetailedPanRack() {
+      var rackGroup = new THREE.Group();
+
+      // Rack bar
+      var barGeometry = new THREE.BoxGeometry(30, 1, 1);
+      var barMaterial = new THREE.MeshStandardMaterial({ color: 0x8B8B8B });
+      var bar = new THREE.Mesh(barGeometry, barMaterial);
+      rackGroup.add(bar);
+
+      // Hanging pans
+      function createHangingPan(xOffset, size, color) {
+        var panGroup = new THREE.Group();
+
+        // String / hook
+        var stringGeometry = new THREE.CylinderGeometry(0.05, 0.05, 3, 8);
+        var stringMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+        var stringMesh = new THREE.Mesh(stringGeometry, stringMaterial);
+        stringMesh.position.y = -1.5;
+        panGroup.add(stringMesh);
+
+        // Pan
+        var panGeometry = new THREE.CylinderGeometry(size, size, 1, 32);
+        var panMaterial = new THREE.MeshStandardMaterial({ color: color });
+        var panMesh = new THREE.Mesh(panGeometry, panMaterial);
+        panMesh.rotation.x = Math.PI / 2;
+        panMesh.position.y = -4;
+        panGroup.add(panMesh);
+
+        panGroup.position.set(xOffset, 0, 0);
+        return panGroup;
+      }
+
+      rackGroup.add(createHangingPan(-10, 2, 0x777777)); // Small pan
+      rackGroup.add(createHangingPan(0, 3, 0x999999));   // Medium pan
+      rackGroup.add(createHangingPan(10, 4, 0x555555));  // Large pan
+
+      rackGroup.position.set(22, 20, -90);
+      scene.add(rackGroup);
+    }
+    createDetailedPanRack(); // Create pan rack
+
+    function createKitchenCabinet(x, y, z) {
+      var cabinetGroup = new THREE.Group();
+
+      // Main cabinet body
+      var cabinetGeometry = new THREE.BoxGeometry(43.75, 70, 26.25); // 1.75x bigger
+      var cabinetMaterial = new THREE.MeshPhongMaterial({ color: 0x87CEEB }); // light blue
+      var cabinet = new THREE.Mesh(cabinetGeometry, cabinetMaterial);
+      cabinet.position.set(0, 35, 0);
+      cabinetGroup.add(cabinet);
+
+      // Doors
+      var doorMaterial = new THREE.MeshPhongMaterial({ color: 0xADD8E6 }); // slightly lighter blue
+      var leftDoor = new THREE.Mesh(new THREE.BoxGeometry(20.125, 66, 0.875), doorMaterial);
+      leftDoor.position.set(-11.25, 35, 13.9);
+      cabinetGroup.add(leftDoor);
+
+      var rightDoor = new THREE.Mesh(new THREE.BoxGeometry(20.125, 66, 0.875), doorMaterial);
+      rightDoor.position.set(11.25, 35, 13.9);
+      cabinetGroup.add(rightDoor);
+
+      // Handles
+      var handleMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
+      var leftHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.875, 0.875, 3.5, 16), handleMaterial);
+      leftHandle.rotation.z = Math.PI / 2;
+      leftHandle.position.set(-3.5, 35, 16.5);
+      cabinetGroup.add(leftHandle);
+
+      var rightHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.875, 0.875, 3.5, 16), handleMaterial);
+      rightHandle.rotation.z = Math.PI / 2;
+      rightHandle.position.set(3.5, 35, 16.5);
+      cabinetGroup.add(rightHandle);
+
+      // Final positioning
+      cabinetGroup.position.set(x, y, z);
+      cabinetGroup.rotation.set(0, -Math.PI / 2, 0); // Rotate to face the front
+      scene.add(cabinetGroup);
+    }
+    createKitchenCabinet(60, -50, -20);
+
+    function createKitchenFryer(x, y, z) {
+      var fryerGroup = new THREE.Group();
+
+      // Fryer body (wider now)
+      var bodyGeometry = new THREE.BoxGeometry(25, 30, 20);
+      var bodyMaterial = new THREE.MeshPhongMaterial({ color: 0xB0B0B0, shininess: 30 }); // metallic gray
+      var body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+      body.position.set(0, 15, 0);
+      fryerGroup.add(body);
+
+      // Deep tray inside the fryer (like a basket area)
+      var trayGeometry = new THREE.BoxGeometry(18, 5, 14);
+      var trayMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
+      var tray = new THREE.Mesh(trayGeometry, trayMaterial);
+      tray.position.set(0, 30, 0);
+      fryerGroup.add(tray);
+
+      // Side bolts/buttons
+      var boltMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
+      var boltPositions = [
+        [-8, 20, 10],
+        [8, 20, 10],
+        [-8, 10, 10],
+        [8, 10, 10]
+      ];
+      boltPositions.forEach(function(pos) {
+        var bolt = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 8), boltMaterial);
+        bolt.position.set(pos[0], pos[1], pos[2]);
+        fryerGroup.add(bolt);
+      });
+
+      // Legs (taller and stronger)
+      var legGeometry = new THREE.CylinderGeometry(1.2, 1.2, 10, 8);
+      var legMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+      var legOffsets = [
+        [-9, -5, -7],
+        [9, -5, -7],
+        [-9, -5, 7],
+        [9, -5, 7]
+      ];
+      legOffsets.forEach(function (offset) {
+        var leg = new THREE.Mesh(legGeometry, legMaterial);
+        leg.position.set(offset[0], 0, offset[2]);
+        fryerGroup.add(leg);
+      });
+
+      fryerGroup.position.set(x, y, z);
+      fryerGroup.rotation.set(0, -Math.PI / 2, 0); // Rotate to face the front
+      scene.add(fryerGroup);
+    }
+    createKitchenFryer(-65, -45, -60); // Create fryer at specified position
 
     // GUI
     var gui = new dat.GUI(); 
