@@ -12,7 +12,9 @@
 <body>
     <script src="./js/three.js"></script>
     <script src="./js/OrbitControls.js"></script>
-    <script src="./js/SceneUtils.js"></script> <script>
+    <script src="./js/SceneUtils.js"></script>
+    <script src="./js/dat.gui.js"></script> <script>
+    
         // === Scene Setup ===
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
@@ -123,21 +125,80 @@
         rightShoeMesh.position.set(rightLegMesh.position.x, legBottomY - shoeHeight / 2, shoeLength / 4);
         spongebobGroup.add(rightShoeMesh);
 
-        // --- Arms ---
+        // --- Arms + Hands ----------------------------------------------------------
         const armGeometry = new THREE.CylinderGeometry(armRadius, armRadius, armLength, 8);
+        const handRadius   = 0.18;
 
-        const leftArmMesh = new THREE.Mesh(armGeometry, legArmMaterial);
-        // Position is the center of the arm cylinder
-        leftArmMesh.position.set(-bodyWidth / 2 - armRadius, bodyMesh.position.y - 0.5, 0);
-        leftArmMesh.rotation.z = Math.PI / 2.8;
+        // helper builds an arm, snaps a hand to its far end, and returns both
+        function buildArm(side = 'L') {
+        const arm = new THREE.Mesh(armGeometry, legArmMaterial);
+
+        /* Shoulder position */
+        const x = (side === 'L' ? -1 : 1) * (bodyWidth / 2.27);
+        arm.position.set(x, bodyMesh.position.y - 0.6, .7);
+
+        arm.rotation.set(Math.PI / 2, Math.PI, Math.PI);     
+
+        /* Hand */
+        const hand = new THREE.Mesh(
+            new THREE.SphereGeometry(handRadius, 12, 12),
+            legArmMaterial
+        );
+        hand.position.set(0, -armLength / 2, 0);   // “-Y” end of the cylinder
+        arm.add(hand);
+
+        return { arm, hand };
+        }
+
+        const { arm: leftArmMesh  } = buildArm('L');
+        const { arm: rightArmMesh, hand: rightHand } = buildArm('R');
+
+        /* Add a pivot group to the left arm */
+        const leftShoulderGroup = new THREE.Object3D();
+        leftShoulderGroup.position.set(
+        rightArmMesh.position.x,
+        rightArmMesh.position.y,
+        rightArmMesh.position.z
+        ); 
+        leftShoulderGroup.rotation.set(Math.PI / 2, Math.PI, Math.PI); // Match arm rotation
+        spongebobGroup.add(leftShoulderGroup);
+
+        rightArmMesh.position.set(0, 0, 0);
+        leftShoulderGroup.add(rightArmMesh);
+
         spongebobGroup.add(leftArmMesh);
 
-        const rightArmMesh = new THREE.Mesh(armGeometry, legArmMaterial);
-        // Position is the center of the arm cylinder
-        rightArmMesh.position.set(bodyWidth / 2 + armRadius, bodyMesh.position.y - 0.6, 0.1); 
-        rightArmMesh.rotation.z = -Math.PI / 2.2;
-        rightArmMesh.rotation.x = -Math.PI / 16;
-        spongebobGroup.add(rightArmMesh);
+        // --- Spatula -------
+        const handleLength = 1.0;
+        const handleRadius = 0.05;
+        const bladeWidth = 0.5;
+        const bladeHeight = 0.1;
+        const bladeLength = 0.2;
+
+
+        const spatulaGroup  = new THREE.Group();
+        const handleGeo  = new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 8);
+        const bladeGeo  = new THREE.BoxGeometry(bladeWidth, bladeHeight, bladeLength);
+
+        const handleMesh = new THREE.Mesh(handleGeo, spatulaHandleMaterial);
+        handleMesh.position.y = -handleLength / 2;               
+        spatulaGroup.add(handleMesh);
+
+        const bladeMesh = new THREE.Mesh(bladeGeo, spatulaBladeMaterial);
+        bladeMesh.position.set(0, 0, bladeLength / 2); 
+        bladeMesh.rotation.x = Math.PI / 2; // Rotate to be flat         
+        spatulaGroup.add(bladeMesh);
+
+        spatulaGroup.rotation.set(Math.PI, Math.PI, 0);           
+        spatulaGroup.position.set(0, -1, handRadius - .1);
+        rightHand.add(spatulaGroup);
+
+        const gui = new dat.GUI();
+        const parm = { angleDeg: 0 };              
+        const baseL = { x: Math.PI/2, y: Math.PI, z: Math.PI };  
+
+        gui.add(parm, 'angleDeg', 0, 80, 1)           // limits: tweak later
+        .name('Flip arm');                         // shows in the GUI
 
         // --- Eyes 
         const eyeRadius = 0.3;
@@ -303,47 +364,6 @@
             spongebobGroup.add(spotMesh);
         });
 
-        // --- Spatula --- 
-        const spatulaGroup = new THREE.Group();
-        const handleLength = 0.8;
-        const handleRadius = 0.05;
-        const bladeWidth = 0.3;
-        const bladeHeight = 0.02;
-        const bladeLength = 0.4;
-
-        const handleGeo = new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 8);
-        const handleMesh = new THREE.Mesh(handleGeo, spatulaHandleMaterial);
-        handleMesh.position.y = -handleLength / 2; // Origin at handle top
-        spatulaGroup.add(handleMesh);
-
-        const bladeGeo = new THREE.BoxGeometry(bladeWidth, bladeHeight, bladeLength);
-        const bladeMesh = new THREE.Mesh(bladeGeo, spatulaBladeMaterial);
-        bladeMesh.position.y = 0;
-        bladeMesh.position.z = bladeLength / 2;
-        spatulaGroup.add(bladeMesh);
-
-        const armMidPoint = new THREE.Vector3().copy(rightArmMesh.position); // Arm center is already its position
-
-        // Get arm orientation
-        const armQuaternion = rightArmMesh.quaternion;
-
-        // Calculate an offset perpendicular to the arm to hold spatula beside it
-        // (e.g., along the arm's local X or Z axis) - let's try local X
-        const holdOffset = new THREE.Vector3(armRadius + handleRadius + 0.05, 0, 0) // Offset outwards along local X
-             .applyQuaternion(armQuaternion); // Rotate offset by arm orientation
-
-        // Set spatula position to arm midpoint + rotated offset
-        spatulaGroup.position.copy(armMidPoint).add(holdOffset);
-
-        // Align spatula roughly with arm orientation
-        spatulaGroup.quaternion.copy(armQuaternion); // Start with arm's rotation
-        // Add rotations for holding pose (e.g., rotate 90 deg around local Y)
-        spatulaGroup.rotateY(Math.PI / 2); // Rotate spatula to be 'flat' relative to arm
-        spatulaGroup.rotateX(Math.PI / 10); // Adjust tilt slightly
-
-
-        spongebobGroup.add(spatulaGroup);
-
         // === Final Group Positioning ===
         const lowestPoint = legBottomY - shoeHeight;
         spongebobGroup.position.y = -lowestPoint;
@@ -356,9 +376,13 @@
         controls.dampingFactor = 0.1;
         controls.update();
 
-        // === Animation Loop ===
+        // ===Animation Loop===
         function animate() {
             requestAnimationFrame(animate);
+        
+            /* Update left arm every frame */ 
+            const rad = parm.angleDeg * Math.PI / 180;   
+            leftShoulderGroup.rotation.set(baseL.x + rad, baseL.y, baseL.z);
             controls.update();
             renderer.render(scene, camera);
         }
