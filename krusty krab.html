@@ -47,6 +47,12 @@
 
     var scene = new THREE.Scene();
 
+    // set up the background
+    var textureLoader = new THREE.TextureLoader();
+    textureLoader.load('./krusty krab textures/background.jpg', function(texture) {
+      scene.background = texture;
+    });
+
     // Create and configure the camera using custom parameters
     const camera = setupCamera(cameraParams);
 
@@ -59,9 +65,6 @@
 
     // Add OrbitControls to allow user interaction (zoom, rotate, pan)
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-    
-
 
     // Add spotlight to the scene
     function addSpotlight() {
@@ -363,7 +366,7 @@
     createBarrel(60, -40, 60);
     createBarrel(45, -40, 45);
 
-    function createUltraDetailedCondimentTable(x, y, z) {
+    function createCondimentTable(x, y, z) {
       var tableGroup = new THREE.Group();
 
       // Tabletop
@@ -451,48 +454,91 @@
       tableGroup.position.set(x, y, z);
       scene.add(tableGroup);
     }
-    createUltraDetailedCondimentTable(20, -50, -90); // Create condiment table
+    createCondimentTable(20, -50, -90); // Create condiment table
 
-    function createDetailedPanRack() {
+    function createPanRack(x, y, z) {
       var rackGroup = new THREE.Group();
 
-      // Rack bar
-      var barGeometry = new THREE.BoxGeometry(30, 1, 1);
-      var barMaterial = new THREE.MeshStandardMaterial({ color: 0x8B8B8B });
-      var bar = new THREE.Mesh(barGeometry, barMaterial);
-      rackGroup.add(bar);
+      var scaleFactor = 1.75; // scaling everything up 1.75x
+      var barLength = 30 * scaleFactor;
 
-      // Hanging pans
-      function createHangingPan(xOffset, size, color) {
-        var panGroup = new THREE.Group();
+      // Top bar (suspended)
+      var topBarGeometry = new THREE.CylinderGeometry(0.5 * scaleFactor, 0.5 * scaleFactor, barLength, 16);
+      var topBarMaterial = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 1, roughness: 0.2 });
+      var topBar = new THREE.Mesh(topBarGeometry, topBarMaterial);
+      topBar.rotation.z = Math.PI / 2;
+      topBar.position.set(0, 0, 0);
+      rackGroup.add(topBar);
 
-        // String / hook
-        var stringGeometry = new THREE.CylinderGeometry(0.05, 0.05, 3, 8);
-        var stringMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+      // Chains (four chains to hang from ceiling)
+      var chainGeometry = new THREE.CylinderGeometry(0.15 * scaleFactor, 0.15 * scaleFactor, 20 * scaleFactor, 8);
+      var chainMaterial = new THREE.MeshStandardMaterial({ color: 0x666666 });
+
+      var chainPositions = [
+        [-barLength / 2 + 3, 10 * scaleFactor, -1],
+        [barLength / 2 - 3, 10 * scaleFactor, -1],
+        [-barLength / 2 + 3, 10 * scaleFactor, 1],
+        [barLength / 2 - 3, 10 * scaleFactor, 1]
+      ];
+
+      chainPositions.forEach(function (pos) {
+        var chain = new THREE.Mesh(chainGeometry, chainMaterial);
+        chain.position.set(pos[0], pos[1], pos[2]);
+        rackGroup.add(chain);
+      });
+
+      // Create hanging cookware (pots and pans)
+      function createHangingItem(xOffset, type) {
+        var itemGroup = new THREE.Group();
+
+        // Hook
+        var hookGeometry = new THREE.TorusGeometry(0.5 * scaleFactor, 0.15 * scaleFactor, 8, 16, Math.PI);
+        var hookMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+        var hook = new THREE.Mesh(hookGeometry, hookMaterial);
+        hook.rotation.x = Math.PI / 2;
+        hook.position.y = -1 * scaleFactor;
+        itemGroup.add(hook);
+
+        // String
+        var stringGeometry = new THREE.CylinderGeometry(0.1 * scaleFactor, 0.1 * scaleFactor, 2 * scaleFactor, 8);
+        var stringMaterial = new THREE.MeshStandardMaterial({ color: 0x555555 });
         var stringMesh = new THREE.Mesh(stringGeometry, stringMaterial);
-        stringMesh.position.y = -1.5;
-        panGroup.add(stringMesh);
+        stringMesh.position.y = -2 * scaleFactor;
+        itemGroup.add(stringMesh);
 
-        // Pan
-        var panGeometry = new THREE.CylinderGeometry(size, size, 1, 32);
-        var panMaterial = new THREE.MeshStandardMaterial({ color: color });
-        var panMesh = new THREE.Mesh(panGeometry, panMaterial);
-        panMesh.rotation.x = Math.PI / 2;
-        panMesh.position.y = -4;
-        panGroup.add(panMesh);
+        // Cookware (pan or pot)
+        var cookwareMaterial = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 1, roughness: 0.4 });
+        var cookware;
 
-        panGroup.position.set(xOffset, 0, 0);
-        return panGroup;
+        if (type === "pan") {
+          var panGeometry = new THREE.CylinderGeometry(2.5 * scaleFactor, 2.5 * scaleFactor, 1 * scaleFactor, 32);
+          cookware = new THREE.Mesh(panGeometry, cookwareMaterial);
+        } else if (type === "pot") {
+          var potGeometry = new THREE.CylinderGeometry(2 * scaleFactor, 2 * scaleFactor, 4 * scaleFactor, 32);
+          cookware = new THREE.Mesh(potGeometry, cookwareMaterial);
+        }
+
+        cookware.rotation.x = Math.PI / 2;
+        cookware.position.y = -4 * scaleFactor;
+        itemGroup.add(cookware);
+
+        itemGroup.position.set(xOffset, 0, 0);
+        rackGroup.add(itemGroup);
       }
 
-      rackGroup.add(createHangingPan(-10, 2, 0x777777)); // Small pan
-      rackGroup.add(createHangingPan(0, 3, 0x999999));   // Medium pan
-      rackGroup.add(createHangingPan(10, 4, 0x555555));  // Large pan
+      // Add multiple items
+      createHangingItem(-barLength / 4, "pan");
+      createHangingItem(-barLength / 8, "pot");
+      createHangingItem(0, "pan");
+      createHangingItem(barLength / 8, "pot");
+      createHangingItem(barLength / 4, "pan");
 
-      rackGroup.position.set(22, 20, -90);
+      // Final placement
+      rackGroup.position.set(x, y, z); // Suspended high above the floor
       scene.add(rackGroup);
     }
-    createDetailedPanRack(); // Create pan rack
+    createPanRack(20, 17, -80); // Create pan rack
+
 
     function createKitchenCabinet(x, y, z) {
       var cabinetGroup = new THREE.Group();
@@ -533,57 +579,102 @@
     }
     createKitchenCabinet(60, -50, -20);
 
-    function createKitchenFryer(x, y, z) {
+    function createDeepFryer(x, y, z) {
       var fryerGroup = new THREE.Group();
 
-      // Fryer body (wider now)
-      var bodyGeometry = new THREE.BoxGeometry(25, 30, 20);
-      var bodyMaterial = new THREE.MeshPhongMaterial({ color: 0xB0B0B0, shininess: 30 }); // metallic gray
+      // Fryer body (shorter)
+      var bodyGeometry = new THREE.BoxGeometry(30, 30, 25); 
+      var bodyMaterial = new THREE.MeshStandardMaterial({
+        color: 0xB0B0B0,
+        metalness: 0.8,
+        roughness: 0.4
+      });
       var body = new THREE.Mesh(bodyGeometry, bodyMaterial);
       body.position.set(0, 15, 0);
       fryerGroup.add(body);
 
-      // Deep tray inside the fryer (like a basket area)
-      var trayGeometry = new THREE.BoxGeometry(18, 5, 14);
-      var trayMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
-      var tray = new THREE.Mesh(trayGeometry, trayMaterial);
-      tray.position.set(0, 30, 0);
-      fryerGroup.add(tray);
-
-      // Side bolts/buttons
-      var boltMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
-      var boltPositions = [
-        [-8, 20, 10],
-        [8, 20, 10],
-        [-8, 10, 10],
-        [8, 10, 10]
-      ];
-      boltPositions.forEach(function(pos) {
-        var bolt = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 8), boltMaterial);
-        bolt.position.set(pos[0], pos[1], pos[2]);
-        fryerGroup.add(bolt);
+      // Deep fryer tank (inside body, slightly smaller)
+      var tankGeometry = new THREE.BoxGeometry(24, 6, 18); 
+      var tankMaterial = new THREE.MeshStandardMaterial({
+        color: 0x777777,
+        metalness: 0.6,
+        roughness: 0.5
       });
+      var tank = new THREE.Mesh(tankGeometry, tankMaterial);
+      tank.position.set(0, 30, 0);
+      fryerGroup.add(tank);
 
-      // Legs (taller and stronger)
-      var legGeometry = new THREE.CylinderGeometry(1.2, 1.2, 10, 8);
-      var legMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+      // Fryer basket
+      var basketGroup = new THREE.Group();
+
+      // Basket body
+      var basketGeometry = new THREE.BoxGeometry(20, 5, 14);
+      var basketMaterial = new THREE.MeshStandardMaterial({
+        color: 0x999999,
+        metalness: 0.9,
+        roughness: 0.3,
+        wireframe: true
+      });
+      var basket = new THREE.Mesh(basketGeometry, basketMaterial);
+      basket.position.set(0, 33, 0);
+      basketGroup.add(basket);
+
+      // Basket handle
+      var handleGeometry = new THREE.CylinderGeometry(0.5, 0.5, 10, 16);
+      var handleMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+      var handle = new THREE.Mesh(handleGeometry, handleMaterial);
+      handle.rotation.z = Math.PI / 2;
+      handle.position.set(12, 35, 0);
+      basketGroup.add(handle);
+
+      fryerGroup.add(basketGroup);
+
+      // Control panel
+      var panelGeometry = new THREE.BoxGeometry(30, 4, 5);
+      var panelMaterial = new THREE.MeshStandardMaterial({ color: 0x555555 });
+      var panel = new THREE.Mesh(panelGeometry, panelMaterial);
+      panel.position.set(0, 30, 11);
+      fryerGroup.add(panel);
+
+      // Buttons (red and green)
+      function createButton(color, offsetX) {
+        var buttonGeometry = new THREE.CylinderGeometry(1.2, 1.2, 1, 16);
+        var buttonMaterial = new THREE.MeshStandardMaterial({ color: color });
+        var button = new THREE.Mesh(buttonGeometry, buttonMaterial);
+        button.rotation.x = Math.PI / 2;
+        button.position.set(offsetX, 30, 14);
+        fryerGroup.add(button);
+      }
+      createButton(0xff3333, -6); // Red button
+      createButton(0x33ff33, 6);  // Green button
+
+      // Legs with foot pads
+      var legGeometry = new THREE.CylinderGeometry(1.5, 1.5, 8, 16); 
+      var legMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
+      var padGeometry = new THREE.CylinderGeometry(2.5, 2.5, 1, 16);
+      var padMaterial = new THREE.MeshStandardMaterial({ color: 0x555555 });
+
       var legOffsets = [
-        [-9, -5, -7],
-        [9, -5, -7],
-        [-9, -5, 7],
-        [9, -5, 7]
+        [-10, -5, -8],
+        [10, -5, -8],
+        [-10, -5, 8],
+        [10, -5, 8]
       ];
       legOffsets.forEach(function (offset) {
         var leg = new THREE.Mesh(legGeometry, legMaterial);
         leg.position.set(offset[0], 0, offset[2]);
         fryerGroup.add(leg);
+
+        var pad = new THREE.Mesh(padGeometry, padMaterial);
+        pad.position.set(offset[0], -5.5, offset[2]);
+        fryerGroup.add(pad);
       });
 
       fryerGroup.position.set(x, y, z);
-      fryerGroup.rotation.set(0, -Math.PI / 2, 0); // Rotate to face the front
+      fryerGroup.rotation.set(0, Math.PI / 2, 0); // Rotate to face the front
       scene.add(fryerGroup);
     }
-    createKitchenFryer(-65, -45, -60); // Create fryer at specified position
+    createDeepFryer(-60, -45, -60); 
 
     // GUI
     var gui = new dat.GUI(); 
