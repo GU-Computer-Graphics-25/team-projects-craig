@@ -213,6 +213,19 @@
 
       grillGroup.rotateY(Math.PI / 2); // rotate to face the front
       grillGroup.position.set(-12, -35, -20); // set grill position
+
+      // Add simple patties to the grill
+      const pattyColor = 0x8B0000; // Dark brownish-red
+
+      for (let i = -1; i <= 1; i++) {
+        const pattyGeometry = new THREE.CylinderGeometry(4, 4, 1, 16); // simple burger shape
+        const pattyMaterial = new THREE.MeshPhongMaterial({ color: pattyColor });
+        const patty = new THREE.Mesh(pattyGeometry, pattyMaterial);
+
+        patty.position.set(i * 12, 17, -55); // on top of grill (17 = y height, tweak if needed)
+
+        grillGroup.add(patty); // attach to grill group
+      }
       scene.add(grillGroup);
     }
     createGrill(0, 0, -50); // create grill at specified position
