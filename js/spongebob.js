@@ -18,18 +18,17 @@ export function createSpongebob() {
     const eyeForwardOffset = bodyDepth / 2 + 0.01;
 
     // --- Materials ---
-    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 });
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00, metalness: 0.2, roughness: .9 });
     const pantsMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
     const shirtMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
-    const legArmMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 });
+    const legArmMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00, metalness: 0.0, roughness: 1.0 });
     const spotMaterial = new THREE.MeshStandardMaterial({ color: 0xDAA520, side: THREE.DoubleSide });
     const beltMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
     const eyeballMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
     const irisMaterial = new THREE.MeshStandardMaterial({ color: 0x4682B4 });
     const pupilMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
     const eyelashMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
-    const noseMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00 });
-    const smileMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); 
+    const noseMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFF00, metalness: 0.1, roughness: .9 });    const smileMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); 
     const toothMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
     const cheekMaterial = new THREE.MeshStandardMaterial({ color: 0xFF8080 });
     const freckleMaterial = new THREE.MeshStandardMaterial({ color: 0xA0522D });
@@ -319,18 +318,34 @@ export function createSpongebob() {
     const spotRadius = 0.15;
     const spotGeometry = new THREE.CircleGeometry(spotRadius, 8);
     const spotsData = [
-        { x: 0.6, y: 1.5, z: bodyDepth / 2 + 0.01 },
-        { x: 0.0, y: 1.0, z: bodyDepth / 2 + 0.01 },
-        { x: -0.7, y: 0.5, z: bodyDepth / 2 + 0.01 },
-        { x: 0.4, y: 0.2, z: bodyDepth / 2 + 0.01 },
-        { x: -0.4, y: 1.6, z: -bodyDepth / 2 - 0.01, ry: Math.PI },
-        { x: 0.5, y: 0.8, z: -bodyDepth / 2 - 0.01, ry: Math.PI },
+        // Right side
+        { x: 1, y: 1.6, z: bodyDepth / 2 - .2, ry: Math.PI/2},
+        { x: 0.5, y: 1.0, z: bodyDepth / 2 + 0.01 },
+        { x: 0.7, y: 0.4, z: bodyDepth / 2 + 0.01 },
+    
+        // Left side
+        { x: -0.7, y: 1.6, z: -bodyDepth / 2 - 0.01, ry: Math.PI },
+        { x: -1, y: 0.4, z: -bodyDepth / 2 +.2, ry: Math.PI / 2},
+    
+        // Random backside
+        { x: 0.5, y: 1.2, z: -bodyDepth / 2 - 0.01, ry: Math.PI },
+        { x: -0.3, y: 1.0, z: -bodyDepth / 2 - 0.01, ry: Math.PI },
+    
+        
     ];
     spotsData.forEach(data => {
-        const spotMesh = new THREE.Mesh(spotGeometry, spotMaterial);
-        spotMesh.position.set(data.x, data.y, data.z);
-        if (data.ry) { spotMesh.rotation.y = data.ry; }
-        spongebobGroup.add(spotMesh);
+        const holeGeometry = new THREE.SphereGeometry(spotRadius, 16, 16);
+        const holeMaterial = new THREE.MeshStandardMaterial({ color: 0x333300, metalness: 0.0, roughness: 1.0 }); // dark brown, matte
+        const holeMesh = new THREE.Mesh(holeGeometry, holeMaterial);
+    
+        holeMesh.scale.z = 0.5; // squash depth for flat indent look
+        holeMesh.position.set(data.x, data.y, data.z);
+    
+        if (data.ry) { 
+            holeMesh.rotation.y = data.ry;
+        }
+    
+        spongebobGroup.add(holeMesh);
     });
 
     // === Final Group Positioning ===
