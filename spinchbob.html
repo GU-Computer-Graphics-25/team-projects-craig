@@ -129,44 +129,52 @@
         const armGeometry = new THREE.CylinderGeometry(armRadius, armRadius, armLength, 8);
         const handRadius   = 0.18;
 
-        // helper builds an arm, snaps a hand to its far end, and returns both
+        let leftUpperArmGroup, leftForearmGroup;
+        let rightUpperArmGroup, rightForearmGroup;
+
         function buildArm(side = 'L') {
-        const arm = new THREE.Mesh(armGeometry, legArmMaterial);
-
-        /* Shoulder position */
-        const x = (side === 'L' ? -1 : 1) * (bodyWidth / 2.27);
-        arm.position.set(x, bodyMesh.position.y - 0.6, .7);
-
-        arm.rotation.set(Math.PI / 2, Math.PI, Math.PI);     
-
-        /* Hand */
-        const hand = new THREE.Mesh(
-            new THREE.SphereGeometry(handRadius, 12, 12),
-            legArmMaterial
-        );
-        hand.position.set(0, -armLength / 2, 0);   // “-Y” end of the cylinder
-        arm.add(hand);
-
-        return { arm, hand };
+            const upperArmGroup = new THREE.Group(); // new group for upper arm + forearm
+        
+            const upperArm = new THREE.Mesh(
+                new THREE.CylinderGeometry(armRadius, armRadius, armLength * 0.5, 8),
+                legArmMaterial
+            );
+            upperArm.position.y = -armLength * 0.25; 
+            upperArmGroup.add(upperArm);
+        
+            const forearmGroup = new THREE.Group(); // new forearm group
+        
+            const forearm = new THREE.Mesh(
+                new THREE.CylinderGeometry(armRadius, armRadius, armLength * 0.5, 8),
+                legArmMaterial
+            );
+            forearm.position.y = -armLength * 0.25; // move forearm mesh down within its group
+            forearmGroup.add(forearm);
+        
+            // Hand attached to forearm
+            const hand = new THREE.Mesh(
+                new THREE.SphereGeometry(handRadius, 12, 12),
+                legArmMaterial
+            );
+            hand.position.set(0, -armLength * 0.5, 0); 
+            forearmGroup.add(hand);
+        
+            forearmGroup.position.set(0, -armLength * 0.5, 0); 
+            upperArmGroup.add(forearmGroup);
+        
+            // Position at shoulder
+            const x = (side === 'L' ? -1 : 1) * (bodyWidth / 2.27);
+            upperArmGroup.position.set(x, bodyMesh.position.y - 0.6, .2);
+            upperArmGroup.rotation.set(Math.PI / 2, Math.PI, Math.PI);
+        
+            return { upperArmGroup, forearmGroup, hand };
         }
 
-        const { arm: leftArmMesh  } = buildArm('L');
-        const { arm: rightArmMesh, hand: rightHand } = buildArm('R');
+        ({ upperArmGroup: leftUpperArmGroup, forearmGroup: leftForearmGroup } = buildArm('L'));
+        ({ upperArmGroup: rightUpperArmGroup, forearmGroup: rightForearmGroup, hand: rightHand } = buildArm('R'));
 
-        /* Add a pivot group to the left arm */
-        const leftShoulderGroup = new THREE.Object3D();
-        leftShoulderGroup.position.set(
-        rightArmMesh.position.x,
-        rightArmMesh.position.y,
-        rightArmMesh.position.z
-        ); 
-        leftShoulderGroup.rotation.set(Math.PI / 2, Math.PI, Math.PI); // Match arm rotation
-        spongebobGroup.add(leftShoulderGroup);
-
-        rightArmMesh.position.set(0, 0, 0);
-        leftShoulderGroup.add(rightArmMesh);
-
-        spongebobGroup.add(leftArmMesh);
+        spongebobGroup.add(leftUpperArmGroup);
+        spongebobGroup.add(rightUpperArmGroup);
 
         // --- Spatula -------
         const handleLength = 1.0;
@@ -197,7 +205,7 @@
         const parm = { angleDeg: 0 };              
         const baseL = { x: Math.PI/2, y: Math.PI, z: Math.PI };  
 
-        gui.add(parm, 'angleDeg', 0, 80, 1)           // limits: tweak later
+        gui.add(parm, 'angleDeg', 0, 40, 1)           // limits: tweak later
         .name('Flip arm');                         // shows in the GUI
 
         // --- Eyes 
@@ -380,9 +388,9 @@
         function animate() {
             requestAnimationFrame(animate);
         
-            /* Update left arm every frame */ 
             const rad = parm.angleDeg * Math.PI / 180;   
-            leftShoulderGroup.rotation.set(baseL.x + rad, baseL.y, baseL.z);
+            rightUpperArmGroup.rotation.x = 1.2 * (Math.PI / 2) + -1.5*rad; 
+            rightForearmGroup.rotation.x = -rad / 2; 
             controls.update();
             renderer.render(scene, camera);
         }

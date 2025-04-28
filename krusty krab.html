@@ -60,7 +60,6 @@
     // Create the WebGL renderer and add it to the page
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight); // size based on window
-    renderer.setAnimationLoop(render); // continuously render frames (main loop)
     renderer.setClearColor(0xdddddd, 1); // set background color (light gray)
     document.body.appendChild(renderer.domElement); // append canvas to DOM
 
@@ -280,6 +279,15 @@
       scene.add(window);
     }
     createKitchenWindow(-75, 10, -20); // create window at specified position
+
+    function addWindowLight() {
+      var windowLight = new THREE.DirectionalLight(0xffffff, 0.4); 
+      windowLight.position.set(-75, 30, -20); 
+      windowLight.target.position.set(-12, -20, -20); 
+      scene.add(windowLight);
+      scene.add(windowLight.target);
+    }
+    addWindowLight();
 
     function createPlatform(x, y, z) {
       var platformGroup = new THREE.Group();
@@ -678,8 +686,11 @@
 
     // Create Spongebob
     const spongebob = createSpongebob();
-    scene.add(spongebob); // add Spongebob to the scene
-    spongebob.position.set(0, -50 + 1.6, 0);
+    scene.add(spongebob.group); // add Spongebob to the scene
+    spongebob.group.scale.set(14, 14, 14); 
+    spongebob.group.position.set(-25, -50 + 23, -20); 
+    spongebob.group.rotation.set(0, -Math.PI / 2, 0);
+
 
     // GUI
     var gui = new dat.GUI(); 
@@ -733,9 +744,9 @@
       var cameraFolder = gui.addFolder('Camera Views');
 
       cameraFolder.add(cameraViews, 'view1').name('View 1 (Front)');
-      cameraFolder.add(cameraViews, 'view2').name('View 2 (Right Side)');
-      cameraFolder.add(cameraViews, 'view3').name('View 3 (Top Down)');
-      cameraFolder.add(cameraViews, 'view4').name('View 4 (Front Left)');
+      cameraFolder.add(cameraViews, 'view2').name('View 2 (Right)');
+      cameraFolder.add(cameraViews, 'view3').name('View 3 (Top)');
+      cameraFolder.add(cameraViews, 'view4').name('View 4 (Front)');
   
       cameraFolder.open(); // Optional: Keep the folder open
 
@@ -750,10 +761,22 @@
       return camera;
     }
 
-    // Render the scene
-    function render() {
+    const parm = { angleDeg: 0 };              
+    const baseL = { x: Math.PI/2, y: Math.PI, z: Math.PI };  
+    gui.add(parm, 'angleDeg', 12, 40, .5)           // limits: tweak later
+    .name('Flip arm'); 
+
+    // ===Animation Loop===
+    function animate() {
+      requestAnimationFrame(animate);
+  
+      const rad = parm.angleDeg * Math.PI / 180;   
+      spongebob.rightUpperArmGroup.rotation.x = 1.2 * (Math.PI / 2) + -1.5*rad; 
+      spongebob.rightForearmGroup.rotation.x = -rad / 2; 
+      controls.update();
       renderer.render(scene, camera);
-    }
+  }
+  animate();
   </script>
 
 </body>
