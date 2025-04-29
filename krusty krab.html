@@ -704,6 +704,126 @@
     spongebob.group.position.set(-25, -50 + 23, -20); 
     spongebob.group.rotation.set(0, -Math.PI / 2, 0);
 
+    // Create Squidward
+
+    // Squidward Variables
+    let squidwardHeadGroup;
+    let neckMesh;
+    const fixedNeckBase = new THREE.Vector3(0, 9, -5);
+    const headPosition = { x: 0, y: 15, z: 0 };
+
+    //Helper function to create shifted-neck geometry
+    function createShiftedNeckGeometry(radiusTop, radiusBottom, height, radialSegments) {
+      const geometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, 1, true);
+      geometry.translate(0, height / 2, 0); 
+      return geometry;
+    }
+
+    //Squidward Creation
+    function createSquidward(x, y, z) {
+      const squidwardGroup = new THREE.Group();
+      const squidwardColor = 0x92C8C8;
+
+      // --- Head Group ---
+      squidwardHeadGroup = new THREE.Group();
+      squidwardGroup.add(squidwardHeadGroup);
+
+      const headMaterial = new THREE.MeshStandardMaterial({ color: squidwardColor, roughness: 0.8, metalness: 0.1 });
+
+      // Head Parts
+      const headTopGeometry = new THREE.SphereGeometry(10, 64, 64);
+      headTopGeometry.scale(1.5, 1.2, 1.1);
+      const headTop = new THREE.Mesh(headTopGeometry, headMaterial);
+      headTop.position.set(0, 24, 0);
+      squidwardHeadGroup.add(headTop);
+
+      const headMiddleGeometry = new THREE.CylinderGeometry(7, 7, 10, 32);
+      headMiddleGeometry.scale(1.5, 1.2, 1.1);
+      const headMiddle = new THREE.Mesh(headMiddleGeometry, headMaterial);
+      headMiddle.position.set(0, 18, 0);
+      squidwardHeadGroup.add(headMiddle);
+
+      const headBottomGeometry = new THREE.SphereGeometry(7, 64, 64);
+      headBottomGeometry.scale(2.2, 0.9, 1.2);
+      const headBottom = new THREE.Mesh(headBottomGeometry, headMaterial);
+      headBottom.position.set(0, 9, 0);
+      squidwardHeadGroup.add(headBottom);
+
+      // Face
+      const facePlane = new THREE.Group();
+      facePlane.position.set(0, 20, 9);
+      squidwardHeadGroup.add(facePlane);
+
+      const eyeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+      const pupilMaterial = new THREE.MeshStandardMaterial({ color: 0x111111 });
+
+      [-3.5, 3.5].forEach(offsetX => {
+        const eyeball = new THREE.Mesh(new THREE.SphereGeometry(3.5, 32, 32), eyeMaterial);
+        eyeball.position.set(offsetX, 2, 0);
+        facePlane.add(eyeball);
+
+        const pupil = new THREE.Mesh(new THREE.SphereGeometry(1.2, 16, 16), pupilMaterial);
+        pupil.position.set(offsetX, 2, 3);
+        facePlane.add(pupil);
+      });
+
+      const eyelidMaterial = new THREE.MeshStandardMaterial({ color: squidwardColor });
+      [-3.5, 3.5].forEach(offsetX => {
+        const eyelid = new THREE.Mesh(new THREE.SphereGeometry(3.7, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2), eyelidMaterial);
+        eyelid.position.set(offsetX, 2.5, 0.6);
+        facePlane.add(eyelid);
+      });
+
+      const eyebrowMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
+      const leftBrow = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 1), eyebrowMaterial);
+      leftBrow.position.set(-5, 6, 2);
+      leftBrow.rotation.z = -0.25;
+      facePlane.add(leftBrow);
+
+      const rightBrow = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 1), eyebrowMaterial);
+      rightBrow.position.set(5, 6, 2);
+      rightBrow.rotation.z = 0.25;
+      facePlane.add(rightBrow);
+
+      const noseMaterial = new THREE.MeshStandardMaterial({ color: squidwardColor });
+      const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 2.2, 11, 32), noseMaterial);
+      nose.position.set(0, -4, 1);
+      nose.rotation.x = 0.2;
+      facePlane.add(nose);
+
+      const noseTip = new THREE.Mesh(new THREE.SphereGeometry(2.2, 22, 32), noseMaterial);
+      noseTip.position.set(0, -10, -0.3);
+      facePlane.add(noseTip);
+
+      facePlane.rotation.x = -0.1;
+
+      const mouthMaterial = new THREE.MeshStandardMaterial({ color: 0x111111 });
+      const mouthGeometry = new THREE.TorusGeometry(7.4, 0.35, 16, 100, Math.PI);
+      const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+      mouth.rotation.x = Math.PI;
+      mouth.rotation.z = Math.PI;
+      mouth.scale.set(1.2, 0.5, 1);
+      mouth.position.set(0, -12, -2);
+      facePlane.add(mouth);
+
+      // Neck
+      const neckBaseGeometry = new THREE.CylinderGeometry(4.5, 4.5, 7, 32);
+      const neckBaseMaterial = new THREE.MeshStandardMaterial({ color: squidwardColor });
+      const neckBaseMesh = new THREE.Mesh(neckBaseGeometry, neckBaseMaterial);
+      neckBaseMesh.position.set(0, 1, 0);
+      squidwardHeadGroup.add(neckBaseMesh);
+
+      const neckGeometry = createShiftedNeckGeometry(4.5, 4.5, 1, 32);
+      const neckMaterial = new THREE.MeshStandardMaterial({ color: squidwardColor });
+      neckMesh = new THREE.Mesh(neckGeometry, neckMaterial);
+      squidwardGroup.add(neckMesh);
+
+      squidwardGroup.rotateY(Math.PI / 2);
+      squidwardGroup.position.set(x, y, z);
+      scene.add(squidwardGroup);
+    }
+    createSquidward(-70, -5, -20); // Create Squidward
+    squidwardHeadGroup.scale.set(0.8, 0.8, 0.8); // Scale Squidward's head
 
     // GUI
     var gui = new dat.GUI(); 
@@ -779,6 +899,10 @@
     gui.add(parm, 'angleDeg', 12, 40, .5)           // limits: tweak later
     .name('Flip arm'); 
 
+    gui.add(headPosition, 'x', -50, 50).name('Squidward X');
+    gui.add(headPosition, 'y', 0, 30).name('Squidward Y');
+    gui.add(headPosition, 'z', 0, 50).name('Squidward Z');
+
     // ===Animation Loop===
     function animate() {
       requestAnimationFrame(animate);
@@ -787,6 +911,20 @@
       spongebob.rightUpperArmGroup.rotation.x = 1.2 * (Math.PI / 2) + -1.5*rad; 
       spongebob.rightForearmGroup.rotation.x = -rad / 2; 
       controls.update();
+
+      squidwardHeadGroup.position.set(headPosition.x, headPosition.y, headPosition.z);
+
+      const start = fixedNeckBase.clone();
+      const end = new THREE.Vector3(headPosition.x, headPosition.y, headPosition.z);
+      const direction = new THREE.Vector3().subVectors(end, start);
+      const distance = direction.length();
+
+      neckMesh.position.copy(start);
+      neckMesh.scale.set(0.8, distance, 0.8); 
+      const neckQuaternion = new THREE.Quaternion();
+      neckQuaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+      neckMesh.quaternion.copy(neckQuaternion);
+
       renderer.render(scene, camera);
   }
   animate();
