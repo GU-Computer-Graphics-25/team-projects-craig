@@ -213,21 +213,40 @@
 
       grillGroup.rotateY(Math.PI / 2); // rotate to face the front
       grillGroup.position.set(-12, -35, -20); // set grill position
-
-      // Add simple patties to the grill
-      const pattyColor = 0x8B0000; // Dark brownish-red
-
-      for (let i = -1; i <= 1; i++) {
-        const pattyGeometry = new THREE.CylinderGeometry(4, 4, 1, 16); // simple burger shape
-        const pattyMaterial = new THREE.MeshPhongMaterial({ color: pattyColor });
-        const patty = new THREE.Mesh(pattyGeometry, pattyMaterial);
-
-        patty.position.set(i * 12, 17, -55); // on top of grill (17 = y height, tweak if needed)
-
-        grillGroup.add(patty); // attach to grill group
-      }
+     
       scene.add(grillGroup);
     }
+
+    const patties = [];
+    const pattyColor = 0x8B0000; 
+    const pattyGeo = new THREE.CylinderGeometry(4, 4, 1, 16);
+    const pattyMat = new THREE.MeshStandardMaterial({ color: pattyColor });
+    const grillSurfaceY = -19;
+
+    // Create Spongebob
+    const spongebob = createSpongebob();
+    scene.add(spongebob.group); // add Spongebob to the scene
+    spongebob.group.scale.set(14, 14, 14); 
+    spongebob.group.position.set(-25, -50 + 23, -20); 
+    spongebob.group.rotation.set(0, -Math.PI / 2, 0);
+
+    // grab the spatula from SpongeBob
+    const spatula = spongebob.group.getObjectByName('spatulaGroup');
+
+    function spawnPatty() {
+      const patty = new THREE.Mesh(pattyGeo, pattyMat);
+      // Start patty on the grill
+      patty.position.set(-60, grillSurfaceY + 1.5, -10); // Center of the grill surface
+      patty.userData = {
+          vy: 0,             // Initial vertical velocity is zero
+          isFlipping: false, // Not flipping initially
+          onGrill: true      // Starts on the grill
+      };
+      scene.add(patty);
+      patties.push(patty);
+    }
+
+    spawnPatty();
     createGrill(0, 0, -50); // create grill at specified position
     
     // Creating the lights
@@ -697,13 +716,6 @@
     }
     createDeepFryer(-60, -45, -60); 
 
-    // Create Spongebob
-    const spongebob = createSpongebob();
-    scene.add(spongebob.group); // add Spongebob to the scene
-    spongebob.group.scale.set(14, 14, 14); 
-    spongebob.group.position.set(-25, -50 + 23, -20); 
-    spongebob.group.rotation.set(0, -Math.PI / 2, 0);
-
     // Create Squidward
 
     // Squidward Variables
@@ -894,9 +906,10 @@
       return camera;
     }
 
-    const parm = { angleDeg: 0 };              
+    const parm = { angleDeg: 8 };      
+    let previousAngleDeg = parm.angleDeg; // Store the previous angle        
     const baseL = { x: Math.PI/2, y: Math.PI, z: Math.PI };  
-    gui.add(parm, 'angleDeg', 12, 40, .5)           // limits: tweak later
+    gui.add(parm, 'angleDeg', 8, 40, .5)           // limits: tweak later
     .name('Flip arm'); 
 
     gui.add(headPosition, 'x', -50, 50).name('Squidward X');
@@ -910,6 +923,39 @@
       const rad = parm.angleDeg * Math.PI / 180;   
       spongebob.rightUpperArmGroup.rotation.x = 1.2 * (Math.PI / 2) + -1.5*rad; 
       spongebob.rightForearmGroup.rotation.x = -rad / 2; 
+
+      // --- Patty Physics ---
+      const gravity = 0.01; 
+      const flipThreshold = 0.1; 
+      const initialFlipVelocity = 0.6; 
+
+      const angleIncrease = parm.angleDeg - previousAngleDeg;
+
+      for (let i = 0; i < patties.length; i++) {
+        const p = patties[i];
+
+        if (angleIncrease > flipThreshold && p.userData.onGrill && parm.angleDeg < 12) {
+            p.userData.vy = initialFlipVelocity;
+            p.userData.isFlipping = true;      
+            p.userData.onGrill = false;        
+        }
+
+        if (p.userData.isFlipping) {
+            p.position.y += p.userData.vy; 
+            p.userData.vy -= gravity;      
+
+            // Check for landing back on the grill
+            if (p.position.y <= grillSurfaceY && p.userData.vy < 0) { // Landed if below surface and moving down
+                p.position.y = grillSurfaceY;      // Snap to grill surface
+                p.userData.vy = 0;                 // Stop vertical movement
+                p.userData.isFlipping = false;     // No longer flipping
+                p.userData.onGrill = true;          // Back on the grill
+            }
+        }
+      }
+
+      previousAngleDeg = parm.angleDeg; // Update the previous angle
+      
       controls.update();
 
       squidwardHeadGroup.position.set(headPosition.x, headPosition.y, headPosition.z);
@@ -926,6 +972,8 @@
       neckMesh.quaternion.copy(neckQuaternion);
 
       renderer.render(scene, camera);
+
+      
   }
   animate();
   </script>

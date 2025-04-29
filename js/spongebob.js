@@ -43,6 +43,14 @@ export function createSpongebob() {
     bodyMesh.position.y = bodyHeight / 2; 
     spongebobGroup.add(bodyMesh);
 
+    // --- Body Outline ---
+    const outlineMaterial = new THREE.LineBasicMaterial({ color: 0xCCCC00}); // dark yellow
+
+        const bodyEdges = new THREE.EdgesGeometry(bodyGeometry);
+        const bodyOutline = new THREE.LineSegments(bodyEdges, outlineMaterial);
+        bodyOutline.position.copy(bodyMesh.position);
+        spongebobGroup.add(bodyOutline);
+
     // --- Pants ---
     const pantsGeometry = new THREE.BoxGeometry(bodyWidth * 1.05, pantsHeight, bodyDepth * 1.05);
     const pantsMesh = new THREE.Mesh(pantsGeometry, pantsMaterial);
