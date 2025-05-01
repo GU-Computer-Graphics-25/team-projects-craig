@@ -2,16 +2,16 @@
 
 ## Project Scene Description/Summary
 
-This project shows of a fully modeled Krusty Krab kitchen, featuring kitchen appliances models, characters such as Spongebob and Squidward, and many initeractable features with the scene.
+This project shows off a fully modeled Krusty Krab kitchen, featuring kitchen appliances models, characters such as Spongebob and Squidward, and many  interactable features with the scene.
 
 ## Features Demonstrated
 
 The following are features that demonstrated in this project scene:
 
 - modeling, particularly hierarchical
-  - Using Hierarchial modeling to create a fully modeled version of Spongebob and Squidward to the scene.
+  - Using Hierarchical modeling to create a fully modeled version of Spongebob and Squidward to the scene.
 - material, lighting and shading
-  - Using many unique materials for each object and incorperating many different lighting sources across the scene.
+  - Using many unique materials for each object and incorporating many different lighting sources across the scene.
 - changing camera position or shape
   - Allows user to select from a list of camera perspectives, in addition to freely looking around with orbit controls.
 - textures and texture-mapping
